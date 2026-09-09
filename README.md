@@ -1,21 +1,17 @@
 ## Project 01 🎮🗄️🗃️
-### GamePulse Analytics Platform 
-At launch, the company has a small engineering team and limited infrastructure.  
-As a Data Engineer, your responsibility is to design and build the company's data platform from the ground up.  
-The platform should be reliable, maintainable, and capable of supporting future business growth without requiring major redesigns.
 
 ### Business Problem
-The company currently has no centralized source of gaming data.
+The company has customer, product-category, and transaction data stored as separate CSV files. The data needs to be collected, standardized, transformed, and organized in Azure so that it can be reliably used for sales and customer analytics.
 
-Analysts spend hours manually collecting information from public websites whenever they need to answer questions such as:
+### Business objective
+Build a cloud-based data pipeline that:
+1. Ingests the source datasets into Azure.
+2. Preserves the original source data.
+3. Cleans and transforms the data.
+4. Produces analytics-ready datasets.
+5. Can be executed repeatedly and reliably.
+6. Provides a foundation for future reporting and analytics.
 
-1. How many games were released this month?
-2. Which genres are becoming more popular?
-3. Which publishers are releasing the most titles?
-4. How has the average game rating changed over time?
-5. Which platforms are receiving the highest number of new releases?
-6. What upcoming games should publishers and journalists monitor?
-
-The manual process is slow, inconsistent, and impossible to scale as the business grows.
-Management has decided to invest in a centralized data platform that continuously collects, validates, stores, and organizes gaming data so analysts can focus on generating insights instead of gathering data.
-> The company has chosen RAWG as its initial external data provider. The platform must be designed with future expansion in mind. 
+### Stakeholders
+1. Business / Sales Analysts — analyze sales, products, customers and stores.
+2. Data Analysts — consume curated datasets for reporting.
