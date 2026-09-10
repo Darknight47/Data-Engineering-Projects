@@ -17,3 +17,13 @@ variable "storage_account_name" {
   description = "Globally unique name for the storage account"
   type        = string
 }
+
+variable "data_factory_name" {
+  description = "Name of the Azure Data Factory instance"
+  type        = string
+}
+
+variable "databricks_workspace_name" {
+  description = "Name of the Azure Databricks workspace"
+  type        = string
+}

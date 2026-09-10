@@ -61,3 +61,40 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "gold" {
   name               = "gold"
   storage_account_id = azurerm_storage_account.datalake.id # This filesystem is associated with the storage account created above (for dependency)
 }
+
+# -- Azure Data Factory for Orchestration
+resource "azurerm_data_factory" "adf" {
+  name                = var.data_factory_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name # resource group must exist first, so we reference the resource group created above (for dependency)
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+# -- DataBricks Workspace for Data Processing
+resource "azurerm_databricks_workspace" "databricks" {
+  name                = var.databricks_workspace_name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name # resource group must exist first, so we reference the resource group created above (for dependency)
+  sku                 = "premium"
+}
+
+# -- Access Connector for DataBricks to access Data Lake Storage Gen2
+resource "azurerm_databricks_access_connector" "databricks" {
+  name                = "retailsales001-dbac"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+# -- Giving the identity accesss to the Data Lake Storage Gen2
+resource "azurerm_role_assignment" "databricks_storage" {
+  scope                = azurerm_storage_account.datalake.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_databricks_access_connector.databricks.identity[0].principal_id
+}
