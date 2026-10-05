@@ -1,9 +1,25 @@
 # Python virtual env
 .venv/
 __pycache__/
+*.py[cod]
 
-# Terraform tracking files
+
+# Terraform
 .terraform/
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
+crash.log
+crash.*.log
 *.tfvars
+*.tfvars.json
+
+# Environment / secrets
+.env
+.env.*
+
+
+# Databricks
+.databricks/
+
+# VS Code
+.vscode/

@@ -53,20 +53,20 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "bronze" {
 # -- Storage Container for Processed Data (Silver Layer)
 resource "azurerm_storage_data_lake_gen2_filesystem" "silver" {
   name               = "silver"
-  storage_account_id = azurerm_storage_account.datalake.id # This filesystem is associated with the storage account created above (for dependency)
+  storage_account_id = azurerm_storage_account.datalake.id 
 }
 
 # -- Storage Container for Curated Data (Gold Layer)
 resource "azurerm_storage_data_lake_gen2_filesystem" "gold" {
   name               = "gold"
-  storage_account_id = azurerm_storage_account.datalake.id # This filesystem is associated with the storage account created above (for dependency)
+  storage_account_id = azurerm_storage_account.datalake.id 
 }
 
 # -- Azure Data Factory for Orchestration
 resource "azurerm_data_factory" "adf" {
   name                = var.data_factory_name
   location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name # resource group must exist first, so we reference the resource group created above (for dependency)
+  resource_group_name = azurerm_resource_group.rg.name 
 
   identity {
     type = "SystemAssigned"
@@ -77,7 +77,7 @@ resource "azurerm_data_factory" "adf" {
 resource "azurerm_databricks_workspace" "databricks" {
   name                = var.databricks_workspace_name
   location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name # resource group must exist first, so we reference the resource group created above (for dependency)
+  resource_group_name = azurerm_resource_group.rg.name 
   sku                 = "premium"
 }
 

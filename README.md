@@ -15,3 +15,16 @@ Build a cloud-based data pipeline that:
 ### Stakeholders
 1. Business / Sales Analysts — analyze sales, products, customers and stores.
 2. Data Analysts — consume curated datasets for reporting.
+
+---
+### Project 02 
+
+#### Hospital Data Engineering Platform
+
+An end-to-end, metadata-driven data engineering platform for integrating hospital data from multiple sources, including PostgreSQL systems and external CSV files.
+
+The platform uses Azure Data Factory for metadata-driven ingestion and orchestration, Azure Data Lake Storage Gen2 for the data lake, and Azure Databricks with PySpark for data transformation across Bronze, Silver, and Gold layers. Control and audit tables are used to support configurable full and incremental loads and track pipeline execution.
+
+The project also incorporates production-oriented engineering practices such as Infrastructure as Code with Terraform, Git-based version control, CI/CD, managed identities and RBAC, data quality and auditing, and automated notifications.   Databricks/Unity Catalog and downstream dashboards are used for governance and data consumption.
+
+The project is based on a real-world healthcare data integration scenario and is designed as a hands-on implementation of production-style Azure Data Engineering practices.
