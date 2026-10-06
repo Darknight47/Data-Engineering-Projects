@@ -1,0 +1,23 @@
+{
+	"name": "LS_AzureSqlDatabase",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "proj02-sql-server.database.windows.net",
+			"database": "sql-db-proj02",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "proj02",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_KeyVault_Hospital",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "proj02-metadata-db-password"
+			}
+		}
+	}
+}
