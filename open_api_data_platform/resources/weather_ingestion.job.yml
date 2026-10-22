@@ -1,0 +1,30 @@
+
+resources:
+  jobs:
+    weather_ingestion:
+      name: open-api-weather-ingestion
+
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${var.schema}
+
+      tasks:
+        - task_key: ingest_weather
+          environment_key: default
+          python_wheel_task:
+            package_name: open_api_data_platform
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+              - "--schema"
+              - "{{job.parameters.schema}}"
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "5"
+            dependencies:
+              - ../dist/*.whl

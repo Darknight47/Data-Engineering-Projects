@@ -1,23 +1,27 @@
 import argparse
 from databricks.sdk.runtime import spark
-from open_api_data_platform import taxis
+#from open_api_data_platform import taxis
+
+from open_api_data_platform.bronze import save_raw_weather
+from open_api_data_platform.ingestion import fetch_weather
 
 
 def main():
-    # Process command-line arguments
     parser = argparse.ArgumentParser(
-        description="Databricks job with catalog and schema parameters",
+        description="Ingest weather data into the Bronze Volume."
     )
     parser.add_argument("--catalog", required=True)
     parser.add_argument("--schema", required=True)
     args = parser.parse_args()
 
-    # Set the default catalog and schema
-    spark.sql(f"USE CATALOG `{args.catalog}`")
-    spark.sql(f"USE SCHEMA `{args.schema}`")
+    output_dir = (
+        f"/Volumes/{args.catalog}/{args.schema}/bronze_raw"
+    )
 
-    # Example: just find all taxis from a sample catalog
-    taxis.find_all_taxis().show(5)
+    weather = fetch_weather()
+    file_path = save_raw_weather(weather, output_dir)
+
+    print(f"Raw weather data saved to: {file_path}")
 
 
 if __name__ == "__main__":
