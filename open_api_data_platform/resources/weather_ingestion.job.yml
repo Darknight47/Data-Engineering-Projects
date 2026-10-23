@@ -21,6 +21,23 @@ resources:
               - "{{job.parameters.catalog}}"
               - "--schema"
               - "{{job.parameters.schema}}"
+              - "--stage"
+              - "ingest"
+
+        - task_key: transform_weather
+          depends_on:
+            - task_key: ingest_weather
+          environment_key: default
+          python_wheel_task:
+            package_name: open_api_data_platform
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+              - "--schema"
+              - "{{job.parameters.schema}}"
+              - "--stage"
+              - "transform"
 
       environments:
         - environment_key: default
