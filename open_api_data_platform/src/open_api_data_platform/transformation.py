@@ -3,6 +3,51 @@ from delta.tables import DeltaTable
 from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp
+from pyspark.sql import functions as F
+
+def validate_silver_weather(silver_df: DataFrame) -> None:
+    
+    required_columns = [
+        "latitude",
+        "longitude",
+        "timezone",
+        "observation_time",
+        "temperature_c",
+        "humidity_percent",
+        "processed_at",
+    ]
+
+    missing_columns = [
+        column for column in required_columns 
+        if column not in silver_df.columns
+    ]
+
+    if(missing_columns):
+        raise ValueError(f"Silver DF is missing columns: {missing_columns}")
+
+    invalid_condition = (
+        F.col("latitude").isNull()
+        | F.col("longitude").isNull()
+        | F.col("timezone").isNull()
+        | F.col("observation_time").isNull()
+        | F.col("temperature_c").isNull()
+        | F.col("humidity_percent").isNull()
+        | F.col("processed_at").isNull()
+        | (F.col("temperature_c") < -90)
+        | (F.col("temperature_c") > 65)
+        | (F.col("humidity_percent") < 0)
+        | (F.col("humidity_percent") > 100)
+    )
+
+    invalid_count = silver_df.filter(invalid_condition).count()
+
+    if(invalid_count > 0):
+        raise ValueError(
+            f"Silver Data-Quality Validation failed: "
+            f"{invalid_count} invalid row(s)"
+        )
+
+    
 
 
 def transform_weather(
