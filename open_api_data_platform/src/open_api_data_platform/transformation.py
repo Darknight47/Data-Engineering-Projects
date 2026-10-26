@@ -4,6 +4,9 @@ from pyspark.sql import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp
 from pyspark.sql import functions as F
+import logging
+
+logger = logging.getLogger(__name__)
 
 def validate_silver_weather(silver_df: DataFrame) -> None:
     
@@ -42,6 +45,15 @@ def validate_silver_weather(silver_df: DataFrame) -> None:
     invalid_count = silver_df.filter(invalid_condition).count()
 
     if(invalid_count > 0):
+        logger.error(
+            "Silver Data-Quality Validation Failed.",
+            extra={
+                "event": "data_quality_failed",
+                "stage": "transform",
+                "invalid_count": invalid_count,
+            },
+        )
+        
         raise ValueError(
             f"Silver Data-Quality Validation failed: "
             f"{invalid_count} invalid row(s)"

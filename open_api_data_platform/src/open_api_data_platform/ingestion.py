@@ -4,26 +4,37 @@ from urllib.request import urlopen
 from urllib.error import HTTPError, URLError
 import logging
 
+# current
+# API_URL = (
+#     "https://api.open-meteo.com/v1/forecast"
+#     "?latitude=59.3293"
+#     "&longitude=18.0686"
+#     "&current=temperature_2m,relative_humidity_2m"
+# )
+
+# hourly
 API_URL = (
     "https://api.open-meteo.com/v1/forecast"
     "?latitude=59.3293"
     "&longitude=18.0686"
-    "&current=temperature_2m,relative_humidity_2m"
+    "&hourly=temperature_2m,relative_humidity_2m"
+    "&forecast_days=1"
+    "&timezone=Europe%2FStockholm"
 )
 
 MAX_ATTEMPTS = 3
 INITIAL_RETRY_DELAY = 1
 RETRYABLE_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__) # name = "open_api_data_platform.ingestion"
 
 def validate_weather(data: dict) -> dict:
     """Validate the minimum structure expected from the weather API."""
     if not isinstance(data, dict):
         raise ValueError("Weather API response must be a JSON object")
 
-    if "current" not in data or not isinstance(data["current"], dict):
-        raise ValueError("Weather API response is missing a valid 'current' object")
+    if "hourly" not in data or not isinstance(data["hourly"], dict):
+        raise ValueError("Weather API response is missing a valid 'hourly' object")
 
     required_fields = (
         "time",
@@ -31,9 +42,11 @@ def validate_weather(data: dict) -> dict:
         "relative_humidity_2m",
     )
 
+    hourly = data["hourly"]
+
     missing_fields = [
         field for field in required_fields
-        if field not in data["current"]
+        if field not in hourly
     ]
 
     if missing_fields:
@@ -41,6 +54,20 @@ def validate_weather(data: dict) -> dict:
             f"Weather API response is missing fields: {missing_fields}"
         )
 
+    for field in required_fields:
+        if(not isinstance(hourly[field], list)):
+            raise ValueError(f"Weather API field '{field}' must be a list.")
+
+    lengths = [len(hourly[field]) for field in required_fields]
+
+    if not lengths[0]:
+        raise ValueError("Weather API hourly data must not be empty")
+
+    if len(set(lengths)) != 1:
+        raise ValueError(
+            "Weather API hourly arrays must have matching lengths"
+        )
+    
     return data
 
 
@@ -67,7 +94,7 @@ def fetch_weather() -> dict:
             if(attempt == MAX_ATTEMPTS):
                 raise
 
-            retry_after = error.headers.get("Retry_After")
+            retry_after = error.headers.get("Retry-After")
             if(retry_after and retry_after.isdigit()):
                 delay = min(int(retry_after), 60)
             else:

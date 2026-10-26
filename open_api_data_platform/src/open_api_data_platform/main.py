@@ -66,10 +66,6 @@ def main():
 
             write_silver(spark=spark, silver_df=silver_df, catalog=args.catalog, schema=args.schema)
 
-            # print(
-            #     f"Silver table updated: "
-            #     f"{args.catalog}.{args.schema}.weather_observations"
-            # )
             logger.info(
                 "Silver table updated",
                 extra={

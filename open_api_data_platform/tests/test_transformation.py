@@ -2,6 +2,8 @@
 import pytest
 from pyspark.sql import SparkSession
 from datetime import datetime
+from pyspark.sql import functions as F
+import logging
 
 from open_api_data_platform.transformation import (
     validate_silver_weather,
@@ -64,3 +66,18 @@ def test_invalid_temperature_fails_validation(
 
     with pytest.raises(ValueError, match="invalid row"):
         validate_silver_weather(invalid_df)
+
+def test_invalid_weather_logs_data_quality_failure(valid_weather_df, caplog):
+    
+    invalid_df = valid_weather_df.withColumn("humidity_percent", F.lit(105))
+
+    with caplog.at_level(logging.ERROR, 
+                         logger="open_api_data_platform_transformation"):
+        with pytest.raises(ValueError, match="1 invalid row"):
+            validate_silver_weather(invalid_df)
+
+    assert any(
+        getattr(record, "event", None) == "data_quality_failed"
+        and getattr(record, "invalid_count", None) == 1
+        for record in caplog.records
+    )
