@@ -14,7 +14,7 @@ def validate_silver_weather(silver_df: DataFrame) -> None:
         "latitude",
         "longitude",
         "timezone",
-        "observation_time",
+        "forecast_time",
         "temperature_c",
         "humidity_percent",
         "processed_at",
@@ -32,7 +32,7 @@ def validate_silver_weather(silver_df: DataFrame) -> None:
         F.col("latitude").isNull()
         | F.col("longitude").isNull()
         | F.col("timezone").isNull()
-        | F.col("observation_time").isNull()
+        | F.col("forecast_time").isNull()
         | F.col("temperature_c").isNull()
         | F.col("humidity_percent").isNull()
         | F.col("processed_at").isNull()
@@ -62,10 +62,7 @@ def validate_silver_weather(silver_df: DataFrame) -> None:
     
 
 
-def transform_weather(
-    spark: SparkSession,
-    bronze_file_path: str,
-) -> DataFrame:
+def transform_weather(spark: SparkSession, bronze_file_path: str) -> DataFrame:
     """Read one raw weather JSON file and prepare a Silver DataFrame."""
     raw_df = (
         spark.read
@@ -73,21 +70,28 @@ def transform_weather(
         .json(bronze_file_path)
     )
 
-    silver_df = raw_df.select(
+    hourly_rows = raw_df.select(
         "latitude",
         "longitude",
         "timezone",
-        "current.time",
-        "current.temperature_2m",
-        "current.relative_humidity_2m",
-    ).selectExpr(
-        "latitude",
-        "longitude",
-        "timezone",
-        "`time` AS observation_time",
-        "`temperature_2m` AS temperature_c",
-        "`relative_humidity_2m` AS humidity_percent",
+        F.explode(
+            F.arrays_zip(
+                F.col("hourly.time"),
+                F.col("hourly.temperature_2m"),
+                F.col("hourly.relative_humidity_2m"),
+            )
+        ).alias("hourly_values")
     )
+
+    silver_df = hourly_rows.select(
+        "latitude",
+        "longitude",
+        "timezone",
+        F.col("hourly_values.time").alias("forecast_time"),
+        F.col("hourly_values.temperature_2m").cast("double").alias("temperature_c"),
+        F.col("hourly_values.relative_humidity_2m").cast("double").alias("humidity_percent"),
+    )
+
 
     return silver_df.withColumn(
         "processed_at",
@@ -95,12 +99,7 @@ def transform_weather(
     )
 
 
-def write_silver(
-    spark: SparkSession,
-    silver_df: DataFrame,
-    catalog: str,
-    schema: str,
-) -> None:
+def write_silver( spark: SparkSession, silver_df: DataFrame, catalog: str, schema: str) -> None:
     """Upsert weather observations into the Silver Delta table."""
     table_name = f"{catalog}.{schema}.weather_observations"
 

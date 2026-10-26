@@ -118,11 +118,6 @@ def fetch_weather() -> dict:
 
             delay = INITIAL_RETRY_DELAY * (2 ** (attempt - 1))
 
-            # print(
-            #     f"Temporary HTTP {error.code}. "
-            #     f"Attempt {attempt}/{MAX_ATTEMPTS} failed; "
-            #     f"retrying in {delay} second(s)."
-            # )
             logger.warning(
                 "Temporary network error; retrying",
                 extra={
