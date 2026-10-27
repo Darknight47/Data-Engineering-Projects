@@ -101,7 +101,7 @@ def transform_weather(spark: SparkSession, bronze_file_path: str) -> DataFrame:
 
 def write_silver( spark: SparkSession, silver_df: DataFrame, catalog: str, schema: str) -> None:
     """Upsert weather observations into the Silver Delta table."""
-    table_name = f"{catalog}.{schema}.weather_observations"
+    table_name = f"{catalog}.{schema}.weather_forecasts"
 
     if not spark.catalog.tableExists(table_name):
         # First run: create the table.
@@ -120,7 +120,7 @@ def write_silver( spark: SparkSession, silver_df: DataFrame, catalog: str, schem
         .merge(
             silver_df.alias("source"),
             """
-            target.observation_time = source.observation_time
+            target.forecast_time = source.forecast_time
             AND target.latitude = source.latitude
             AND target.longitude = source.longitude
             """,
