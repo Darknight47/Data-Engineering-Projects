@@ -39,6 +39,21 @@ resources:
               - "--stage"
               - "transform"
 
+        - task_key: build_gold
+          depends_on:
+            - task_key: transform_weather
+          environment_key: default
+          python_wheel_task:
+            package_name: open_api_data_platform
+            entry_point: main
+            parameters:
+              - "--catalog"
+              - "{{job.parameters.catalog}}"
+              - "--schema"
+              - "{{job.parameters.schema}}"
+              - "--stage"
+              - "gold"
+
       environments:
         - environment_key: default
           spec:

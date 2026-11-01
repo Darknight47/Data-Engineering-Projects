@@ -7,12 +7,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
+# Silver layer imports
 from open_api_data_platform.transformation import (
     transform_weather,
     validate_silver_weather,
-    write_silver,
+    write_silver
 )
+
+# Gold layer imports
+from open_api_data_platform.gold import (
+    build_daily_summary,
+    validate_gold,
+    write_gold,
+)  
 
 def main():
     configure_logging()
@@ -24,12 +31,13 @@ def main():
     parser.add_argument("--schema", required=True)
     parser.add_argument(
         "--stage",
-        choices=["ingest", "transform"],
+        choices=["ingest", "transform", "gold"],
         required=True,
     )
     args = parser.parse_args()
 
     try:
+        # Ingest stage: Fetch weather data and save to Bronze layer
         if args.stage == "ingest":
             weather = fetch_weather()
 
@@ -52,7 +60,7 @@ def main():
                     "file_path": str(file_path),
                 },
             )
-
+        # Silver layer processing
         elif args.stage == "transform":
 
             bronze_file_path = dbutils.jobs.taskValues.get(
@@ -75,7 +83,42 @@ def main():
                     "schema": args.schema,
                     "table_name": (
                         f"{args.catalog}.{args.schema}."
-                        "weather_observations"
+                        "weather_forecasts"
+                    ),
+                },
+            )
+
+        # Gold layer processing
+        elif args.stage == "gold":
+            silver_table = f"{args.catalog}.{args.schema}.weather_forecasts"
+
+            logger.info(
+                "Starting Gold processing",
+                extra={
+                    "event": "gold_processing_started",
+                    "stage": "gold",
+                    "table_name": silver_table
+                },
+            )
+
+            silver_df = spark.table(silver_table)
+
+            gold_df = build_daily_summary(silver_df)
+
+            validate_gold(gold_df=gold_df)
+
+            write_gold(spark=spark, gold_df=gold_df, catalog=args.catalog, schema=args.schema)
+
+            logger.info(
+                "Gold table updated",
+                extra={
+                    "event": "gold_write_succeeded",
+                    "stage": "gold",
+                    "catalog": args.catalog,
+                    "schema": args.schema,
+                    "table_name": (
+                        f"{args.catalog}.{args.schema}."
+                        "weather_daily_summary"
                     ),
                 },
             )
