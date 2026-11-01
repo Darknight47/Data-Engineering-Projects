@@ -1,11 +1,12 @@
 import argparse
 from databricks.sdk.runtime import dbutils, spark
 from open_api_data_platform.logging_config import configure_logging
+from open_api_data_platform.pipeline import run_ingestion, run_silver, run_gold  
 import logging
 
 logger = logging.getLogger(__name__)
 
-from open_api_data_platform.src.open_api_data_platform.pipeline import run_ingestion, run_silver, run_gold  
+
 
 def main():
     configure_logging()
@@ -25,10 +26,10 @@ def main():
     try:
         # Ingest stage: Fetch weather data and save to Bronze layer
         if args.stage == "ingest":
-           run_ingestion(catalog=args.catalog, schema=args.schema, dbutils=dbutils)
+            run_ingestion(catalog=args.catalog, schema=args.schema, dbutils=dbutils)
         # Silver layer processing
         elif args.stage == "transform":
-            run_silver(catalog=args.catalog, schema=args.schema, spark=spark)
+            run_silver(catalog=args.catalog, schema=args.schema, spark=spark, dbutils=dbutils)
         # Gold layer processing
         elif args.stage == "gold":
             run_gold(catalog=args.catalog, schema=args.schema, spark=spark)
