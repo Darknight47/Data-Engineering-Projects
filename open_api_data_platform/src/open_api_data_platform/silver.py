@@ -8,6 +8,43 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def transform_weather(spark: SparkSession, bronze_file_path: str) -> DataFrame:
+    """Read one raw weather JSON file and prepare a Silver DataFrame."""
+    raw_df = (
+        spark.read
+        .option("multiline", "true")
+        .json(bronze_file_path)
+    )
+
+    hourly_rows = raw_df.select(
+        "latitude",
+        "longitude",
+        "timezone",
+        F.explode(
+            F.arrays_zip(
+                F.col("hourly.time"),
+                F.col("hourly.temperature_2m"),
+                F.col("hourly.relative_humidity_2m"),
+            )
+        ).alias("hourly_values")
+    )
+
+    silver_df = hourly_rows.select(
+        "latitude",
+        "longitude",
+        "timezone",
+        F.col("hourly_values.time").alias("forecast_time"),
+        F.col("hourly_values.temperature_2m").cast("double").alias("temperature_c"),
+        F.col("hourly_values.relative_humidity_2m").cast("double").alias("humidity_percent"),
+    )
+
+
+    return silver_df.withColumn(
+        "processed_at",
+        current_timestamp(),
+    )
+
+
 def validate_silver_weather(silver_df: DataFrame) -> None:
     
     required_columns = [
@@ -58,45 +95,6 @@ def validate_silver_weather(silver_df: DataFrame) -> None:
             f"Silver Data-Quality Validation failed: "
             f"{invalid_count} invalid row(s)"
         )
-
-    
-
-
-def transform_weather(spark: SparkSession, bronze_file_path: str) -> DataFrame:
-    """Read one raw weather JSON file and prepare a Silver DataFrame."""
-    raw_df = (
-        spark.read
-        .option("multiline", "true")
-        .json(bronze_file_path)
-    )
-
-    hourly_rows = raw_df.select(
-        "latitude",
-        "longitude",
-        "timezone",
-        F.explode(
-            F.arrays_zip(
-                F.col("hourly.time"),
-                F.col("hourly.temperature_2m"),
-                F.col("hourly.relative_humidity_2m"),
-            )
-        ).alias("hourly_values")
-    )
-
-    silver_df = hourly_rows.select(
-        "latitude",
-        "longitude",
-        "timezone",
-        F.col("hourly_values.time").alias("forecast_time"),
-        F.col("hourly_values.temperature_2m").cast("double").alias("temperature_c"),
-        F.col("hourly_values.relative_humidity_2m").cast("double").alias("humidity_percent"),
-    )
-
-
-    return silver_df.withColumn(
-        "processed_at",
-        current_timestamp(),
-    )
 
 
 def write_silver( spark: SparkSession, silver_df: DataFrame, catalog: str, schema: str) -> None:
