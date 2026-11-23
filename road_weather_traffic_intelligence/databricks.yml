@@ -1,0 +1,8 @@
+
+bundle:
+  name: road_weather_traffic_intelligence
+
+targets:
+  dev:
+    default: true
+    mode: development
