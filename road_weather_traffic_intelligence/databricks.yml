@@ -2,6 +2,9 @@
 bundle:
   name: road_weather_traffic_intelligence
 
+include:
+  - resources/*.yml
+
 targets:
   dev:
     default: true
