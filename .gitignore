@@ -24,3 +24,5 @@ crash.*.log
 
 # VS Code
 .vscode/
+
+data/
