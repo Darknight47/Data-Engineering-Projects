@@ -2,6 +2,12 @@
 bundle:
   name: road_weather_traffic_intelligence
 
+artifacts:
+  default:
+    type: whl
+    build: uv build --wheel
+    path: .
+
 include:
   - resources/*.yml
 

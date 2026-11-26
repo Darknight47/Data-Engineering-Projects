@@ -5,14 +5,17 @@ resources:
 
       tasks:
         - task_key: run_main
-          spark_python_task:
-            python_file: ../src/road_weather_traffic_intelligence/main.py
+          python_wheel_task:
+            package_name: road_weather_traffic_intelligence
+            entry_point: main
             parameters:
               - "--site-id"
               - "40"
-          environment_key: default
-        
+          environment_key: default   
+
       environments:
         - environment_key: default
           spec:
-            environment_version: "2"
+            environment_version: "3"
+            dependencies:
+              - "${workspace.root_path}/artifacts/.internal/road_weather_traffic_intelligence-0.0.1-py3-none-any.whl"
